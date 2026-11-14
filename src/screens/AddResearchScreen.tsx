@@ -13,10 +13,13 @@ import {
 } from 'lucide-react';
 import { TopBar } from '../components/TopBar';
 import { InsightItem, Project, ResearchFile } from '../types/trace';
+import { resolveApiUrl } from '../utils/apiClient';
+import { extractDocumentClientSide } from '../utils/documentExtractor';
 
 interface AddResearchScreenProps {
   userName: string;
   project: Project;
+  backendUrl?: string;
   onBack: () => void;
   onOpenSettings: () => void;
   onUpdateProject: (updated: Project) => void;
@@ -46,6 +49,7 @@ function readFileAsBase64(file: File): Promise<string> {
 export const AddResearchScreen: React.FC<AddResearchScreenProps> = ({
   userName,
   project,
+  backendUrl,
   onBack,
   onOpenSettings,
   onUpdateProject,
@@ -72,27 +76,11 @@ export const AddResearchScreen: React.FC<AddResearchScreenProps> = ({
         const dotIdx = file.name.lastIndexOf('.');
         const extension = dotIdx >= 0 ? file.name.slice(dotIdx).toLowerCase() : '';
 
-        const extractRes = await fetch('/api/extract-document', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: file.name,
-            mimeType: file.type || 'application/octet-stream',
-            dataBase64,
-          }),
-        });
-
-        const extractData = (await extractRes.json()) as {
-          supportedForAi?: boolean;
-          extractionMode?: 'text' | 'multimodal' | 'unsupported';
-          extractedText?: string | null;
-          reason?: string;
-          error?: string;
-        };
-
-        if (!extractRes.ok) {
-          throw new Error(extractData.error || `Failed to process ${file.name}`);
-        }
+        const extractData = await extractDocumentClientSide(
+          file.name,
+          file.type || 'application/octet-stream',
+          dataBase64
+        );
 
         newFiles.push({
           id: `file_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
@@ -158,7 +146,7 @@ export const AddResearchScreen: React.FC<AddResearchScreenProps> = ({
 
     setAnalyzing(true);
     try {
-      const response = await fetch('/api/analyze-research', {
+      const response = await fetch(resolveApiUrl('/api/analyze-research', backendUrl), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

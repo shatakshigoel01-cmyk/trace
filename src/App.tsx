@@ -222,6 +222,7 @@ export default function App() {
         <AddResearchScreen
           userName={profile.name}
           project={activeProject}
+          backendUrl={settings.backendUrl}
           onBack={() => setRoute('home')}
           onOpenSettings={() => setRoute('settings')}
           onUpdateProject={upsertProject}

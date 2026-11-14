@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { TopBar } from '../components/TopBar';
 import { AppSettings, DesignScreen, Project, TraceAnalysisResult } from '../types/trace';
+import { resolveApiUrl } from '../utils/apiClient';
 
 interface ConnectDesignScreenProps {
   userName: string;
@@ -69,7 +70,17 @@ export const ConnectDesignScreen: React.FC<ConnectDesignScreenProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/api/figma/status')
+    let url = '';
+    try {
+      url = resolveApiUrl('/api/figma/status', settings.backendUrl);
+    } catch {
+      setFigmaOauthConfigured(false);
+      setFigmaSetupMessage(
+        'Figma OAuth requires a configured TRACE backend server URL in Settings. Use Screenshots to upload UI images directly.'
+      );
+      return;
+    }
+    fetch(url)
       .then((res) => res.json())
       .then((data: { oauthConfigured?: boolean; setupMessage?: string | null }) => {
         setFigmaOauthConfigured(Boolean(data.oauthConfigured));
@@ -81,7 +92,7 @@ export const ConnectDesignScreen: React.FC<ConnectDesignScreenProps> = ({
           'Unable to verify Figma server configuration. Upload UI screenshots directly instead.'
         );
       });
-  }, []);
+  }, [settings.backendUrl]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -200,7 +211,7 @@ export const ConnectDesignScreen: React.FC<ConnectDesignScreenProps> = ({
 
     setLoadingFigma(true);
     try {
-      const res = await fetch('/api/figma/frames', {
+      const res = await fetch(resolveApiUrl('/api/figma/frames', settings.backendUrl), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -264,7 +275,7 @@ export const ConnectDesignScreen: React.FC<ConnectDesignScreenProps> = ({
 
     setAnalyzingTrace(true);
     try {
-      const res = await fetch('/api/trace-analysis', {
+      const res = await fetch(resolveApiUrl('/api/trace-analysis', settings.backendUrl), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

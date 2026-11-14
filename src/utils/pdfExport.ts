@@ -1,7 +1,10 @@
+import { Capacitor } from '@capacitor/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Share } from '@capacitor/share';
 import { jsPDF } from 'jspdf';
 import { Project } from '../types/trace';
 
-export function exportTracePdf(project: Project): void {
+export async function exportTracePdf(project: Project): Promise<void> {
   const doc = new jsPDF({ unit: 'pt', format: 'a4' });
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
@@ -33,7 +36,6 @@ export function exportTracePdf(project: Project): void {
     y += lines.length * lineHeight + gapAfter;
   };
 
-  // Header
   addWrappedText('TRACE — Decision Trace Report', 18, [108, 59, 245], true, 6);
   addWrappedText(project.name, 14, [17, 19, 28], true, 4);
   addWrappedText(
@@ -140,5 +142,23 @@ export function exportTracePdf(project: Project): void {
   }
 
   const safeFile = project.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  doc.save(`${safeFile || 'trace'}-report.pdf`);
+  const fileName = `${safeFile || 'trace'}-report.pdf`;
+
+  if (Capacitor.isNativePlatform()) {
+    const dataUri = doc.output('datauristring');
+    const base64 = dataUri.split(',')[1] || '';
+    const saved = await Filesystem.writeFile({
+      path: fileName,
+      data: base64,
+      directory: Directory.Cache,
+    });
+    await Share.share({
+      title: `${project.name} — Trace Report`,
+      url: saved.uri,
+      dialogTitle: 'Export TRACE PDF Report',
+    });
+    return;
+  }
+
+  doc.save(fileName);
 }

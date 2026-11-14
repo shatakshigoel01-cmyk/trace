@@ -12,6 +12,7 @@ import {
 import { PWAInstallButton } from '../components/PWAInstallButton';
 import { TopBar } from '../components/TopBar';
 import { AppSettings, UserProfile } from '../types/trace';
+import { isNativeAndroidApp } from '../utils/apiClient';
 
 interface SettingsScreenProps {
   profile: UserProfile;
@@ -323,6 +324,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             <p className="mt-2 text-sm leading-relaxed text-[#525866]">
               Your projects, uploaded research documents, notes, and UI screenshots are stored locally on your device in IndexedDB so they remain available across restarts. Files are only sent to the TRACE AI backend when you explicitly tap Analyse Research or Analyse &amp; Connect.
             </p>
+            {isNativeAndroidApp() && (
+              <label className="mt-4 block text-xs font-semibold text-[#3E4352]">
+                TRACE Backend Server URL (for AI Analysis)
+                <input
+                  type="url"
+                  value={settings.backendUrl || ''}
+                  onChange={(e) =>
+                    onUpdateSettings({ ...settings, backendUrl: e.target.value })
+                  }
+                  placeholder="https://your-trace-server.run.app"
+                  className="mt-1.5 w-full rounded-xl border border-[#DCE0E8] px-3.5 py-2.5 text-sm text-[#11131C] outline-none focus:border-[#6C3BF5]"
+                />
+              </label>
+            )}
             <div className="mt-6 flex items-center justify-between gap-2.5">
               <button
                 type="button"

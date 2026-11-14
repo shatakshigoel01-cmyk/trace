@@ -110,4 +110,5 @@ export interface AppSettings {
   figmaAccessToken: string | null;
   figmaWorkspaceLabel: string | null;
   hasSeenWelcome: boolean;
+  backendUrl?: string;
 }

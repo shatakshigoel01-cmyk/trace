@@ -16,6 +16,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   figmaAccessToken: null,
   figmaWorkspaceLabel: null,
   hasSeenWelcome: false,
+  backendUrl: '',
 };
 
 function openDb(): Promise<IDBDatabase> {

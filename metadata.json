@@ -1,0 +1,8 @@
+{
+  "name": "TRACE",
+  "description": "AI-powered UX research synthesis and design decision tracing.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
